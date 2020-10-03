@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Making of Ikat</title>
+		<link rel="stylesheet" href="./css/reset.css">
+		<link rel="stylesheet" href="./css/reveal.css">
+		<link rel="stylesheet" href="./css/theme/black.css">
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-background-color="#e07b7c" data-transition="fade-in">
+					<h5>Making of Ikat</h5>
+					<img style="border:none; box-shadow: none;" src="./what_is_ikat.gif" alt="gif explaining difference between"/>
+				</section>
+				<section data-background-color="black" data-transition="fade-in">
+					<h5>Weave</h5>
+					<iframe style="width:680px; height:680px;" data-src="./weave.html"></iframe>
+				</section>
+				<section data-background-color="black" data-transition="fade-in">
+					<h5>Bundle</h5>
+					<iframe style="width:680px; height:680px;" data-src="./bundle.html"></iframe>
+				</section>
+				<section data-background-color="black" data-transition="fade-in">
+					<h5>Transfer</h5>
+					<iframe style="width:680px; height:680px;" data-src="./transfer.html"></iframe>
+				</section>
+				<section data-background-color="black" data-transition="fade-in">
+					<h5>Warp</h5>
+					<iframe style="width:680px; height:680px;" data-src="./warp.html"></iframe>
+				</section>
+			</div>
+		</div>
+		<script src="./reveal.js"></script>
+
+		<script>
+			// More info about config & dependencies:
+			// - https://github.com/hakimel/reveal.js#configuration
+			// - https://github.com/hakimel/reveal.js#dependencies
+			Reveal.initialize({
+        history: true
+			});
+			Reveal.addEventListener('slidechanged', 
+        function (e) {
+					var iframe = e.currentSlide.querySelector('iframe');
+					if(!iframe) return;
+					iframe.src = iframe.dataset.src;
+				}
+      )
+		</script>
+	</body>
+</html>
+

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>thread waft</title>
+  <style>
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      cursor: pointer;
+      /* hsl(240, 52%, 5%); */
+      /* cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><circle cx="12px" cy="12px" r="12px" fill="rgba(255, 255, 255, 0.5)"></circle></svg>'), auto; */
+    }
+    svg {
+      /* border: 1px solid black; */
+      background: black;
+      mix-blend-mode: darken;
+      touch-action: none;
+      pointer-events: none;
+    }
+    canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: -10;
+      /* mix-blend-mode: color-burn; */
+    }
+  </style>
+</head>
+<body>
+  <img src="./leafblue.png" id="img" style="display: none" alt="">
+  <script src="./howler.js"></script>
+  <script>
+const width = window.innerWidth
+const height = window.innerHeight
+const size = Math.min(width, height)
+const NS = 'http://www.w3.org/2000/svg'
+const svg = document.createElementNS(NS, 'svg')
+svg.setAttribute('NS', NS)
+svg.setAttribute('width', size)
+svg.setAttribute('height', size)
+svg.setAttribute('viewBox', `0 0 ${size} ${size}`)
+document.body.appendChild(svg)
+svg.innerHTML = `
+<defs>
+    <pattern id="pattern" x="0px" y="0px" width="3" height="3" patternUnits="userSpaceOnUse" >
+      <line x1="3" x2="0" y1="0" y2="3" style="stroke: hsl(5deg, 100%, 95%);"></line>
+    </pattern>
+ </defs>
+`
+const center = [
+  size * 0.5,
+  size * 0.5
+]
+
+const strokeWidth = 2
+const r = strokeWidth * 1
+const margin = 32
+const rows = Math.floor((size - (margin * 2)) / (r*2))
+const weft = document.createElementNS(NS, 'path')
+weft.setAttribute('d', `${[...Array(rows)].map((_, i) => {
+  const ML = i === 0 ? 'M' : 'L'
+  const y = margin + i * (r * 2)
+  let startX, endX
+  if(i%2===0) {
+    startX = margin + r
+    endX = size - margin - r
+    if(i===0) {
+      addCircle(startX, y - 2 * r, r)
+    }
+    addCircle(endX, y, r)
+    return `${ML} ${startX},${y} L ${endX},${y} 
+    A ${r} ${r} 0 0 1 ${endX},${y + r * 2}`
+  } else {
+    startX = size - margin - r
+    endX = margin + r
+    addCircle(endX, y, r)
+    return `${ML} ${startX},${y} L ${endX},${y} 
+    A ${r} ${r} 0 0 0 ${endX},${y + r * 2}`
+  }
+})}`)
+weft.setAttribute('stroke', 'url(#pattern)')
+weft.setAttribute('stroke-width', strokeWidth)
+weft.setAttribute('fill', 'none')
+svg.appendChild(weft)
+const weftOverlap = document.createElementNS(NS, 'path')
+weftOverlap.setAttribute('d', `${[...Array(rows)].map((_, i) => {
+  const ML = i === 0 ? 'M' : 'L'
+  const y = margin + i * (r * 2)
+  let startX, endX
+  if(i%2===0) {
+    startX = margin + r
+    endX = size - margin - r
+    if(i===0) {
+      addCircle(startX, y - 2 * r, r)
+    }
+    addCircle(endX, y, r)
+    return `${ML} ${startX},${y} L ${endX},${y} 
+    A ${r} ${r} 0 0 1 ${endX},${y + r * 2}`
+  } else {
+    startX = size - margin - r
+    endX = margin + r
+    addCircle(endX, y, r)
+    return `${ML} ${startX},${y} L ${endX},${y} 
+    A ${r} ${r} 0 0 0 ${endX},${y + r * 2}`
+  }
+  //  A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+  
+})}`)
+// weftOverlap.setAttribute('stroke', 'url(#pattern)')
+weftOverlap.setAttribute('stroke', 'white')
+weftOverlap.setAttribute('stroke-width', strokeWidth * 0.5)
+weftOverlap.setAttribute('fill', 'none')
+weftOverlap.setAttribute('stroke-dasharray', `${strokeWidth} ${r}`)
+svg.appendChild(weftOverlap)
+const p = document.createElementNS(NS, 'path')
+function addCircle(x, y, r) {
+  const circle = document.createElementNS(NS, 'circle')
+  circle.setAttribute('cx', x)
+  circle.setAttribute('cy', y + r)
+  circle.setAttribute('r', r)
+  circle.setAttribute('stroke', 'white')
+  // circle.setAttribute('fill', 'hsl(230, 45%, 33%)')
+  circle.setAttribute('fill', 'hsla(230, 45%, 33%, 0)')
+  svg.appendChild(circle)
+}
+const side = ((size - margin - r) - (margin + r)) + Math.PI * r
+p.setAttribute('d', `${[...Array(rows)].map((_, i) => {
+  const ML = i === 0 ? 'M' : 'L'
+  const x = margin + i * (r * 2)
+  let startY, endY
+  if(i%2===0) {
+    startY = margin - r
+    endY = size - margin - (r * 1)
+    return `${ML} ${x},${startY} L ${x},${endY} 
+    A ${r} ${r} 0 0 0 ${x + r * 2},${endY}`
+  } else {
+    startY = size - margin - r
+    endY = margin - r
+    return `${ML} ${x},${startY} L ${x},${endY} 
+    A ${r} ${r} 0 0 1 ${x + r * 2},${endY}`
+  }
+})}`)
+p.setAttribute('stroke', 'url(#pattern)')
+p.setAttribute('stroke-width', strokeWidth)
+p.setAttribute('fill', 'none')
+svg.appendChild(p)
+const length = p.getTotalLength();
+p.setAttribute('stroke-dasharray', `${length} ${length}`)
+p.setAttribute('stroke-dashoffset', length);
+const duration = 10000
+const animation = p.animate([{
+  strokeDashoffset: length
+},{
+  strokeDashoffset: 0
+}], {
+  duration: duration, 
+  // easing: 'ease-in-out',
+  easing: 'linear',
+  fill: 'forwards'
+  // iterations: Infinity, direction: 'alternate', 
+})
+const audio = new Audio()
+animation.pause()
+let moving = false
+let distance = 0
+const maxD = 10000
+let posY = 0
+let prevPosY = 0 
+function animate(e) {
+  if(!moving) return
+  prevPosY = posY
+  posY = e.pageY
+  distance += Math.abs(posY - prevPosY)
+  var ratio = distance / maxD
+  sound.play(`${Math.floor(ratio * 10000)}`);
+  sound.fade(1, 0, 100)
+  animation.currentTime = duration * ratio
+}
+
+window.onmousedown = e => {
+  if(!sound) createAudioContext()
+  if(!moving) {
+    moving = true
+    prevPosX = posX = e.pageX
+    return
+  }
+}
+window.onmouseup = e => {
+  sound.pause()
+  if(moving) {
+    moving = false
+    prevPosX = posX = e.pageX
+    return
+  }
+}
+window.addEventListener('mousemove', animate)
+window.addEventListener('touchmove', animate)
+var sound;
+function createAudioContext() {
+  sound = new Howl({
+    src: ['./audio-loop.m4a'],
+    sprite: [...Array(10000)].reduce((sprite, _, i) => {
+      sprite[i] = [i, 100]
+      return sprite
+    }, {})
+  }); 
+}
+
+const canvas = document.createElement('canvas')
+const ctx = canvas.getContext('2d')
+canvas.width = size
+canvas.height = size
+canvas.style.position = 'absolute'
+const rect = svg.getBoundingClientRect()
+canvas.style.left = rect.left + 'px'
+canvas.style.top = rect.top + 'px'
+document.body.appendChild(canvas)
+const groupBy = 3
+const c = Math.floor(rows / (groupBy * 5))
+const gap = (size - 2 * margin) / c
+const s = gap * 0.75
+// function drawMotif(x, y, w, h) {
+//   ctx.beginPath();
+//   ctx.arc(x + w * 0.5, 
+//           y + h * 0.5, 
+//           w * 0.5, 
+//           -Math.PI * 0.5,
+//            Math.PI * 0.5
+//           )
+//   ctx.arc(x + w * 0.5, 
+//           y + h * 0.5, 
+//           w * 0.5, 
+//           Math.PI * 0.5, 
+//           -Math.PI * 0.5
+//           )
+//   ctx.closePath();
+//   ctx.stroke()
+// }
+function drawMotif(x, y, w, h) {
+  ctx.drawImage(img, x, y, w, h)
+}
+
+ctx.strokeStyle = `blue`
+ctx.globalCompositeOperation = 'hue'
+
+ctx.lineWidth = 12
+for(let i = 1; i < c; i++) {
+  for(let j = 1; j < c; j++) {
+    drawMotif(
+      margin + j * gap - s * 0.5 + (i % 2 ? -s/4 : s/4), 
+      margin + i * gap - s * 0.5, 
+      s, s
+    )
+  }
+}
+
+  </script>
+  <script src="./trail.js"></script>
+</body>
+</html>

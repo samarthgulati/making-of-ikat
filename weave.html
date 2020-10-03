@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>thread waft</title>
+  <style>
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100vw;
+      height: 100vh;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      /* background: #d45956; */
+      background: #000;
+      /* hsl(240, 52%, 5%); */
+      cursor: pointer;
+      /* cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><circle cx="12px" cy="12px" r="12px" fill="rgba(255, 255, 255, 0.5)"></circle></svg>'), auto; */
+    }
+    svg {
+      /* border: 1px solid black; */
+      
+      touch-action: none;
+      pointer-events: none;
+    }
+    canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: -10;
+    }
+  </style>
+</head>
+<body>
+  <!-- import the webpage's javascript file -->
+  <!-- <script src="/ogl.mjs" type="module"></script>
+  <script src="/script.mjs" type="module"></script> -->
+  <script src="./howler.js"></script>
+  <script>
+const width = window.innerWidth
+const height = window.innerHeight
+const size = Math.min(width, height)
+const NS = 'http://www.w3.org/2000/svg'
+const svg = document.createElementNS(NS, 'svg')
+svg.setAttribute('NS', NS)
+svg.setAttribute('width', size)
+svg.setAttribute('height', size)
+svg.setAttribute('viewBox', `0 0 ${size} ${size}`)
+document.body.appendChild(svg)
+svg.innerHTML = `
+<defs>
+    <pattern id="pattern" x="0px" y="0px" width="3" height="3" patternUnits="userSpaceOnUse" >
+      <line x1="3" x2="0" y1="0" y2="3" style="stroke: hsl(5deg, 100%, 95%);"></line>
+    </pattern>
+ </defs>
+`
+const center = [
+  size * 0.5,
+  size * 0.5
+]
+
+const strokeWidth = 2
+const r = strokeWidth * 1//.5
+const margin = 32
+const rows = Math.floor((size - (margin * 2)) / (r*2))
+const p = document.createElementNS(NS, 'path')
+function addCircle(x, y, r) {
+  const circle = document.createElementNS(NS, 'circle')
+  circle.setAttribute('cx', x)
+  circle.setAttribute('cy', y + r)
+  circle.setAttribute('r', r)
+  circle.setAttribute('stroke', 'white')
+  // circle.setAttribute('fill', 'hsl(230, 45%, 33%)')
+  circle.setAttribute('fill', 'hsla(230, 45%, 33%, 0)')
+  svg.appendChild(circle)
+}
+const side = ((size - margin - r) - (margin + r)) + Math.PI * r
+
+// const samples = ['A2.ogg','A3.ogg','A4.ogg','A5.ogg','Ab3.ogg','Ab4.ogg','B2.ogg','B3.ogg','B4.ogg','B5.ogg','Bb2.ogg','Bb3.ogg','Bb4.ogg','C3.ogg','C4.ogg','C5.ogg','D3.ogg','D4.ogg','Db3.ogg','Db4.ogg','E3.ogg','E4.ogg','Eb3.ogg','Eb4.ogg','F3.ogg','F4.ogg','G3.ogg','G4.ogg','Gb3.ogg','Gb4.ogg']
+p.setAttribute('d', `${[...Array(rows)].map((_, i) => {
+  const ML = i === 0 ? 'M' : 'L'
+  const y = margin + i * (r * 2)
+  let startX, endX
+  if(i%2===0) {
+    startX = margin + r
+    endX = size - margin - r
+    if(i===0) {
+      addCircle(startX, y - 2 * r, r)
+    }
+    addCircle(endX, y, r)
+    return `${ML} ${startX},${y} L ${endX},${y} 
+    A ${r} ${r} 0 0 1 ${endX},${y + r * 2}`
+  } else {
+    startX = size - margin - r
+    endX = margin + r
+    addCircle(endX, y, r)
+    return `${ML} ${startX},${y} L ${endX},${y} 
+    A ${r} ${r} 0 0 0 ${endX},${y + r * 2}`
+  }
+  //  A rx ry x-axis-rotation large-arc-flag sweep-flag x y
+  
+})}`)
+p.setAttribute('stroke', 'url(#pattern)')
+p.setAttribute('stroke-width', strokeWidth)
+p.setAttribute('fill', 'none')
+svg.appendChild(p)
+const length = p.getTotalLength();
+p.setAttribute('stroke-dasharray', `${length} ${length}`)
+p.setAttribute('stroke-dashoffset', length);
+const duration = 10000
+const animation = p.animate([{
+  strokeDashoffset: length
+},{
+  strokeDashoffset: 0
+}], {
+  duration: duration, 
+  // easing: 'ease-in-out',
+  easing: 'linear',
+  fill: 'forwards'
+  // iterations: Infinity, direction: 'alternate', 
+})
+
+animation.pause()
+let moving = false
+let distance = 0
+const maxD = 10000
+let posX = 0
+let prevPosX = 0 
+function animate(e) {
+  if(!moving) return
+  prevPosX = posX
+  posX = e.pageX
+  distance += Math.abs(posX - prevPosX)
+  var ratio = distance / maxD
+  sound.play(`${Math.floor(ratio * 10000)}`);
+  sound.fade(1, 0, 100)
+  animation.currentTime = duration * ratio
+}
+
+window.onmousedown = e => {
+  if(!sound) createAudioContext()
+  if(!moving) {
+    moving = true
+    prevPosX = posX = e.pageX
+    return
+  }
+}
+window.onmouseup = e => {
+  sound.pause()
+  if(moving) {
+    moving = false
+    prevPosX = posX = e.pageX
+    return
+  }
+}
+window.addEventListener('mousemove', animate)
+window.addEventListener('touchmove', animate)
+var sound;
+function createAudioContext() {
+  sound = new Howl({
+    src: ['./audio-loop.m4a'],
+    sprite: [...Array(10000)].reduce((sprite, _, i) => {
+      sprite[i] = [i, 100]
+      return sprite
+    }, {})
+  }); 
+}
+
+  </script>
+  <script src="./trail.js"></script>
+</body>
+</html>

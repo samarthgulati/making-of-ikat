@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pattern transfer</title>
+  <style>
+    html {
+      /* background: #d45956; */
+      background: #000;
+    }
+    html, body {
+      margin: 0;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      height: -webkit-fill-available;
+      overflow: hidden;
+      cursor: pointer;
+      /* hsl(240, 52%, 5%); */
+      /* cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24"><circle cx="12px" cy="12px" r="12px" fill="rgba(255, 255, 255, 0.5)"></circle></svg>'), auto; */
+    }
+    svg {
+      touch-action: none;
+      pointer-events: none;
+    }
+    canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+    #drawing {
+      mix-blend-mode: multiply;
+    }
+  </style>
+</head>
+<body>
+  <img src="./leafwhite.png" id="img" style="display: none" alt="">
+  <script src="./howler.js"></script>
+  <script src="./transfer.js"></script>
+  <script src="./drawing.js"></script>
+  <script>
+const NS = 'http://www.w3.org/2000/svg'
+const svg = document.createElementNS(NS, 'svg')
+svg.setAttribute('NS', NS)
+svg.setAttribute('width', size)
+svg.setAttribute('height', size)
+svg.setAttribute('viewBox', `0 0 ${size} ${size}`)
+document.body.appendChild(svg)
+svg.innerHTML = `
+<defs>
+    <pattern id="pattern" x="0px" y="0px" width="3" height="3" patternUnits="userSpaceOnUse" >
+      <line x1="3" x2="0" y1="0" y2="3" style="stroke: hsl(5deg, 100%, 95%);"></line>
+    </pattern>
+ </defs>
+`
+
+
+function addCircle(x, y, r) {
+  const circle = document.createElementNS(NS, 'circle')
+  circle.setAttribute('cx', x)
+  circle.setAttribute('cy', y + r)
+  circle.setAttribute('r', r)
+  circle.setAttribute('stroke', 'white')
+  circle.setAttribute('fill', 'hsl(230, 45%, 33%)')
+  svg.appendChild(circle)
+}
+
+for (let i = 0; i < rows; i+=groupBy) {
+  const targetY = margin + (i + Math.ceil(groupBy * 0.5) - 1) * (r * 2)
+  for(let j = i; j < i + groupBy; j++) {
+    const y = margin + j * (r * 2)
+    addCircle(startX, y - r, r)
+    addCircle(endX, y - r, r)
+    const p = document.createElementNS(NS, 'path')
+    p.setAttribute('stroke', 'url(#pattern)')
+    p.setAttribute('stroke-width', strokeWidth)
+    p.setAttribute('fill', 'none')
+    p.setAttribute('d', `M${startX},${y} 
+                         L${startX + offset},${targetY + strokeWidth * (j - i - 2)} 
+                         L${endX - offset},${targetY + strokeWidth * (j - i - 2)} 
+                         L${endX},${y}`)
+    svg.appendChild(p)
+  }
+}
+
+const rect = svg.getBoundingClientRect()
+canvas.style.left = rect.left + 'px'
+canvas.style.top = rect.top + 'px'
+drawingCanvas.style.left = rect.left + 'px'
+drawingCanvas.style.top = rect.top + 'px'
+
+  </script>
+  <script src="./trail.js"></script>
+</body>
+</html>
